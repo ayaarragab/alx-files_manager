@@ -1,7 +1,7 @@
 import crypto from 'crypto';
+import ObjectId from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
-import ObjectId from 'mongodb';
 
 export default class UsersController {
   static postNew(req, res) {
@@ -44,30 +44,31 @@ export default class UsersController {
       const token = req.header('X-Token');
       if (!token) {
         console.log('token not found');
-        
-        return response.status(401).json({ error: 'Unauthorized' });
+
+        return res.status(401).json({ error: 'Unauthorized' });
       }
       const key = `auth_${token}`;
       const id = await redisClient.get(key);
       if (id) {
         const users = dbClient.db.collection('users');
-        const user = users.findOne({_id: ObjectId(id)}, (error, user) => {
+        users.findOne({ _id: ObjectId(id) }, (error, user) => {
           if (user) {
-            return  res.status(200).json({ id: user._id, email: user.email });
+            return res.status(200).json({ id: user._id, email: user.email });
           }
           console.log('not found user?????');
-          
+
           return res.status(401).json({ error: 'Unauthorized' });
         });
       } else {
         console.log('id??????');
-        
-          response.status(401).json({ error: 'Unauthorized' });
+
+        return res.status(401).json({ error: 'Unauthorized' });
       }
     } catch (error) {
       console.log(error);
-      
-      res.status(401).json({ error: 'Unauthorized' });
+
+      return res.status(401).json({ error: 'Unauthorized' });
     }
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 }

@@ -12,8 +12,12 @@ class DBClient {
     this.client = new MongoClient(url, { useUnifiedTopology: true, useNewUrlParser: true });
     this.client.connect().then(() => {
       this.db = this.client.db(`${DATABASE}`);
+      console.log(url);
       
     })
+    .catch((err) => {
+      console.error("MongoDB Connection Error:", err);
+    });
   }
 
   isAlive() {

@@ -1,8 +1,8 @@
-import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
 import fs from 'fs/promises';
-import ObjectId from 'mongodb';
-
+import { ObjectID } from 'mongodb';
+import { v4 as uuidv4 } from 'uuid'; // Correct UUID import
+import redisClient from '../utils/redis';
+import dbClient from '../utils/db';
 
 export default class FilesController {
   static async postUpload(req, res) {
@@ -10,34 +10,35 @@ export default class FilesController {
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
+
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
     if (!userId) {
-      console.log("here?");
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const user = await dbClient.findOne({ _id: new ObjectId(userId) });
+
+    // Find the user from the database
+    const users = dbClient.db.collection('users');
+    const idObject = new ObjectID(userId);
+    const user = await users.findOne({ _id: idObject });
     if (!user) {
-      
       return res.status(401).json({ error: 'Unauthorized' });
     }
+
     const {
       name, // Filename
       type, // Type of the file (folder, file, image)
-      parentId, // Parent ID, default is 0 (root)
+      parentId = '0', // Parent ID default to '0' (root)
       isPublic = false, // Public flag, default is false
       data, // Base64 encoded file data
     } = req.body;
 
-
-    if (!parentId) parentId = '0';
+    // Ensure 'parentId' has a default value if undefined
     if (!name) {
       return res.status(400).json({ error: 'Missing name' });
     }
 
     const acceptedTypes = ['folder', 'file', 'image'];
-
-
     if (!type || !acceptedTypes.includes(type)) {
       return res.status(400).json({ error: 'Missing type' });
     }
@@ -47,72 +48,71 @@ export default class FilesController {
     }
 
     if (data && type === 'folder') {
-      return res.status(400).json({ error: 'cannot upload file as folder' });
+      return res.status(400).json({ error: 'Cannot upload file as folder' });
     }
 
-
+    // If 'parentId' is provided, validate that the parent is a folder
     if (parentId !== '0') {
-      const parentFolder = await DBCrud.findFile({ _id: new ObjectId(parentId) });
+      const parentFolder = await dbClient.db.collection('files').findOne({ _id: new ObjectID(parentId) });
 
-
-      // Check if the parent folder exists
       if (!parentFolder) {
         return res.status(400).json({ error: 'Parent not found' });
       }
-
 
       if (parentFolder.type !== 'folder') {
         return res.status(400).json({ error: 'Parent is not a folder' });
       }
     }
+
     const files = dbClient.db.collection('files');
     if (type === 'folder') {
-      files.insertOne(
-        {
-          userId: user._id,
-          name,
-          type,
-          parentId: parentId || 0,
-          isPublic,
-        });
-        res.status(201).json({
+      const result = await files.insertOne({
+        userId: user._id,
+        name,
+        type,
+        parentId: parentId || '0',
+        isPublic,
+      });
+
+      return res.status(201).json({
         id: result.insertedId,
         userId: user._id,
         name,
         type,
         isPublic,
-        parentId: parentId || 0,
+        parentId: parentId || '0',
       });
-    } else {
-      const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
-      const fname = `${filePath}/${uuidv4()}`;
-      const buff = Buffer.from(data, 'base64');
-      try {
-        try {
-          await fs.mkdir(filePath);
-        } catch (error) {
-        }
-      await fs.writeFile(fname, buff, 'utf-8');
-      } catch (error) {
-        console.log(error);
-      }
-        files.insertOne({
-          userId: user._id,
-          name,
-          type,
-          isPublic,
-          parentId: parentId || 0,
-          localPath: fname
-        }).then((res) => {
-          res.status(201).json({
-            id: result.insertedId,
-            userId: user._id,
-            name,
-            type,
-            isPublic,
-            parentId: parentId || 0
-          })
-        });
     }
+    // Create folder and save file
+    const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
+    const fname = `${filePath}/${uuidv4()}`;
+    const buff = Buffer.from(data, 'base64');
+    try {
+      // Create directory if it doesn't exist
+      await fs.mkdir(filePath, { recursive: true });
+      await fs.writeFile(fname, buff, 'utf-8');
+    } catch (error) {
+      console.error('File saving error:', error);
+      return res.status(500).json({ error: 'Could not save the file' });
+    }
+
+    const result = await files.insertOne({
+      userId: user._id,
+      name,
+      type,
+      isPublic,
+      parentId: parentId || '0',
+      localPath: fname,
+    });
+
+    return res.status(201).json({
+      id: result.insertedId,
+      userId: user._id,
+      name,
+      type,
+      isPublic,
+      parentId: parentId || '0',
+      localPath: fname,
+    });
   }
 }

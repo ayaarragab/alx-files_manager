@@ -51,7 +51,7 @@ export default class UsersController {
       const id = await redisClient.get(key);
       if (id) {
         const users = dbClient.db.collection('users');
-        users.findOne({ _id: ObjectId(id) }, (error, user) => {
+        await users.findOne({ _id: new ObjectId(id) }, (error, user) => {
           if (user) {
             return res.status(200).json({ id: user._id, email: user.email });
           }

@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 import ObjectId from 'mongodb';
 
 export default class UsersController {
@@ -40,8 +41,10 @@ export default class UsersController {
 
   static async getMe(req, res) {
     try {
-      const token = request.header('X-Token');
+      const token = req.header('X-Token');
       if (!token) {
+        console.log('token not found');
+        
         return response.status(401).json({ error: 'Unauthorized' });
       }
       const key = `auth_${token}`;
@@ -52,12 +55,18 @@ export default class UsersController {
           if (user) {
             return  res.status(200).json({ id: user._id, email: user.email });
           }
+          console.log('not found user?????');
+          
           return res.status(401).json({ error: 'Unauthorized' });
         });
       } else {
+        console.log('id??????');
+        
           response.status(401).json({ error: 'Unauthorized' });
       }
     } catch (error) {
+      console.log(error);
+      
       res.status(401).json({ error: 'Unauthorized' });
     }
   }

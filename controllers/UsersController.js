@@ -18,7 +18,7 @@ export default class UsersController {
 
     const users = dbClient.db.collection('users');
 
-    return users.findOne({ email }, (err, user) => { // Added return here
+    users.findOne({ email }, (err, user) => { // Added return here
       if (err) {
         return res.status(500).json({ error: 'Internal Server Error' });
       }
@@ -29,7 +29,7 @@ export default class UsersController {
 
       const hashedPassword = crypto.createHash('sha1').update(password).digest('hex');
 
-      return users.insertOne({ email, password: hashedPassword },
+      users.insertOne({ email, password: hashedPassword },
         (err, result) => { // Added return here
           if (err) {
             return res.status(500).json({ error: 'Internal Server Error' });

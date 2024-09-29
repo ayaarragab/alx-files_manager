@@ -1,11 +1,9 @@
-import sha1 from 'sha1';
-import { v4 as uuidv4 } from 'uuid';
-import redisClient from '../utils/redis';
-import dbClient from '../utils/db';
-
 export default class AuthController {
-  static getConnect(request, response) {
+  static async getConnect(request, response) {
     const auth = request.header('Authorization');
+    if (!auth) {
+      return response.status(401).json({ error: 'Unauthorized' });
+    }
 
     let dataOneStr = auth.split(' ')[1];
     const buff = Buffer.from(dataOneStr, 'base64');
@@ -15,6 +13,9 @@ export default class AuthController {
       return response.status(401).json({ error: 'Unauthorized' });
     }
     const hashedP = sha1(data[1]);
+
+    // Ensure MongoDB connection is established before accessing the collection
+    await dbClient.connecting;
 
     const users = dbClient.db.collection('users');
     users.findOne({ email: data[0], password: hashedP }, async (_, user) => {
@@ -26,7 +27,6 @@ export default class AuthController {
       }
       return response.status(401).json({ error: 'Unauthorized' });
     });
-    return 0;
   }
 
   static async getDisconnect(request, response) {

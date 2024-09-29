@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
-import ObjectId from 'mongodb';
+import {ObjectId} from 'mongodb';
 
 export default class UsersController {
   static postNew(req, res) {
@@ -18,7 +18,7 @@ export default class UsersController {
 
     const users = dbClient.db.collection('users');
 
-    return users.findOne({ email }, (err, user) => { // Added return here
+    users.findOne({ email }, (err, user) => { // Added return here
       if (err) {
         return res.status(500).json({ error: 'Internal Server Error' });
       }

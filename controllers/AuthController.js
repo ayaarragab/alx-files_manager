@@ -1,3 +1,8 @@
+const redisClient = require('../utils/redis');
+const dbClient = require('../utils/db');
+import sha1 from 'sha1';
+
+import { v4 as uuidv4 } from 'uuid';
 export default class AuthController {
   static async getConnect(request, response) {
     const auth = request.header('Authorization');

@@ -1,5 +1,5 @@
 const redisClient = require('../utils/redis');
-// const dbClient = require('../utils/db');
+const dbClient = require('../utils/db');
 import sha1 from 'sha1';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -23,7 +23,8 @@ export default class AuthController {
 
     // Ensure MongoDB connection is established before accessing the collection
     await dbClient.connecting;
-
+    console.log(dbClient.db);
+    
     const users = dbClient.db.collection('users');
     users.findOne({ email: data[0], password: hashedP }, async (_, user) => {
       if (user) {

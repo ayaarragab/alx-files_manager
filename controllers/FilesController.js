@@ -1,4 +1,4 @@
-import fs from 'fs/promises';
+import { promises as fs } from 'fs';
 import { ObjectID } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid'; // Correct UUID import
 import redisClient from '../utils/redis';

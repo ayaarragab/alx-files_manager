@@ -41,7 +41,7 @@ export default class FilesController {
     }
 
     const acceptedTypes = ['folder', 'file', 'image'];
-    if (type === null || !acceptedTypes.includes(type)) {
+    if (!type || !acceptedTypes.includes(type)) {
       return res.status(400).json({ error: 'Missing type' });
     }
 

@@ -159,4 +159,51 @@ export default class FilesController {
     }
     return 0;
   }
+
+  static async getIndex(req, res) {
+    try {
+      const token = req.header('X-Token');
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const key = `auth_${token}`;
+      const id = await redisClient.get(key);
+      if (id) {
+        const users = dbClient.db.collection('users');
+        await users.findOne({ _id: ObjectId(id) }, async (error, user) => {
+          if (user) {
+            try {
+              const { parentId } = req.query || 0;
+              const { page } = req.query;
+              const files = dbClient.db.collection('files');
+              const pageSize = 20;
+              const pageNumber = parseInt(page, 10) || 0;
+              const skip = pageNumber * pageSize;
+
+              const query = { userId: ObjectId(id), parentId: parentId || '0' };
+              const fileDocuments = await files.aggregate([
+                { $match: query },
+                { $skip: skip },
+                { $limit: pageSize },
+              ]).toArray();
+
+              return res.status(200).json(fileDocuments);
+            } catch (error) {
+              console.log(error);
+            }
+          }
+          console.log('not found user?????');
+
+          return res.status(401).json({ error: 'Unauthorized' });
+        });
+      } else {
+        console.log('id??????');
+
+        res.status(401).json({ error: 'Unauthorized' });
+      }
+    } catch (error) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    return 0;
+  }
 }

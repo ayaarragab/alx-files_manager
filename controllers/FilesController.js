@@ -41,7 +41,7 @@ export default class FilesController {
     }
 
     const acceptedTypes = ['folder', 'file', 'image'];
-    if (!type || !acceptedTypes.includes(type)) {
+    if (type === null || !acceptedTypes.includes(type)) {
       return res.status(400).json({ error: 'Missing type' });
     }
 
@@ -49,7 +49,7 @@ export default class FilesController {
       return res.status(400).json({ error: 'Missing data' });
     }
 
-    if (!data && type === 'folder') {
+    if (data === null && type === 'folder') {
       return res.status(400).json({ error: 'Cannot upload file as folder' });
     }
 

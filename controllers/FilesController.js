@@ -3,6 +3,7 @@ import { ObjectID } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid'; // Correct UUID import
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+import { ObjectId } from 'mongodb';
 
 export default class FilesController {
   static async postUpload(req, res) {
@@ -116,5 +117,46 @@ export default class FilesController {
       parentId: parentId || '0',
       localPath: fname,
     });
+  }
+
+  static async getShow(req, res) {
+    try {
+      const token = req.header('X-Token');
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const key = `auth_${token}`;
+      const id = await redisClient.get(key);
+      if (id) {
+        const users = dbClient.db.collection('users');
+        await users.findOne({ _id: ObjectId(id) }, async (error, user) => {
+          if (user) {
+            try {
+              const fileId = req.params.id;
+              if (!fileId) {
+                return res.status(404).json({error: "not found"});
+              }
+              const files = dbClient.db.collection('files');
+              const file = await files.findOne({userId: ObjectId(id), _id: ObjectId(fileId)});
+              if (!file) {
+                return res.status(404).json({error: "not found"});                
+              }
+              return res.status(200).json(file);
+            } catch (error) {
+              
+            }
+          }
+          console.log('not found user?????');
+  
+          return res.status(401).json({ error: 'Unauthorized' });
+        });
+      } else {
+        console.log('id??????');
+  
+        res.status(401).json({ error: 'Unauthorized' });
+      }
+    } catch (error) {
+      return res.status(401).json({ error: 'Unauthorized' });      
+    }
   }
 }

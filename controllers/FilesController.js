@@ -3,7 +3,6 @@ import { ObjectID } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid'; // Correct UUID import
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
-import { isNull } from 'util';
 
 export default class FilesController {
   static async postUpload(req, res) {
@@ -35,7 +34,7 @@ export default class FilesController {
       data, // Base64 encoded file data
     } = req.body;
     console.log(req.body);
-    
+
     // Ensure 'parentId' has a default value if undefined
     if (!name) {
       return res.status(400).json({ error: 'Missing name' });

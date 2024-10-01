@@ -21,7 +21,6 @@ export default class AuthController {
 
     // Ensure MongoDB connection is established before accessing the collection
     await dbClient.connecting;
-    console.log(dbClient.db);
 
     const users = dbClient.db.collection('users');
     users.findOne({ email: data[0], password: hashedP }, async (_, user) => {

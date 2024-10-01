@@ -8,20 +8,21 @@ export default class FilesController {
   static async postUpload(req, res) {
     const token = req.header('X-Token');
     if (!token) {
+      console.log('Token cannot be extracted');
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
     if (!userId) {
+      console.log('UserId cannot be found');
       return res.status(401).json({ error: 'Unauthorized' });
     }
-
-    // Find the user from the database
     const users = dbClient.db.collection('users');
     const idObject = new ObjectID(userId);
     const user = await users.findOne({ _id: idObject });
     if (!user) {
+      console.log('User cannot be found');
       return res.status(401).json({ error: 'Unauthorized' });
     }
 

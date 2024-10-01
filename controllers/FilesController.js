@@ -33,7 +33,8 @@ export default class FilesController {
       isPublic = false, // Public flag, default is false
       data, // Base64 encoded file data
     } = req.body;
-
+    console.log(req.body);
+    
     // Ensure 'parentId' has a default value if undefined
     if (!name) {
       return res.status(400).json({ error: 'Missing name' });

@@ -3,6 +3,7 @@ import { ObjectID } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid'; // Correct UUID import
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+import { isNull } from 'util';
 
 export default class FilesController {
   static async postUpload(req, res) {
@@ -45,7 +46,7 @@ export default class FilesController {
       return res.status(400).json({ error: 'Missing type' });
     }
 
-    if (!data && type !== 'folder') {
+    if (data === null && type !== 'folder') {
       return res.status(400).json({ error: 'Missing data' });
     }
 

@@ -191,7 +191,7 @@ export default class FilesController {
     if (!parentId) {
       query = { userId: user._id };
     } else {
-      query = { parentId: ObjectID(parentId), userId: user._id };
+      query = { parentId: parentId, userId: user._id };
     }
     files.aggregate(
       [

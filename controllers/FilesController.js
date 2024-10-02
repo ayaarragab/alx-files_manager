@@ -152,7 +152,7 @@ export default class FilesController {
                 return res.status(404).json({ error: 'not found' });
               }
               const files = dbClient.db.collection('files');
-              const file = await files.findOne({ userId: id, _id: ObjectId(fileId) });
+              const file = await files.findOne({ userId: ObjectId(id), _id: ObjectId(fileId) });
               if (!file) {
                 return res.status(404).json({ error: 'not found' });
               }

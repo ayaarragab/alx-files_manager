@@ -189,7 +189,7 @@ export default class FilesController {
     const files = dbClient.db.collection('files');
     let query;
     if (!parentId) {
-      query = {parentId: 0, userId: user._id };
+      query = { userId: user._id };
     } else {
       query = { parentId, userId: user._id };
     }

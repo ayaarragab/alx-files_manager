@@ -204,9 +204,9 @@ export default class FilesController {
           },
         },
       ],
-    ).toArray((err, res) => {
+    ).toArray((err, result) => {
       if (res) {
-        const finalFormat = res[0].data.map((file) => {
+        const finalFormat = result[0].data.map((file) => {
           const formattedFile = {
             ...file,
             id: file._id,

@@ -224,4 +224,42 @@ export default class FilesController {
     });
     return 0;
   }
+
+  static async putPublish(req, res) {
+    const user = await FilesController.getUser(req);
+    if (!user) {
+      return res.status(401).json({error: 'Unauthorized'});
+    }
+    const { id } = request.params;
+    const files = dbClient.db.collection('files');
+    const idObject = new ObjectID(id);
+    const update = { $set: { isPublic: true } };
+    const options = { returnOriginal: false };
+    files.findOneAndUpdate({ _id: idObject, userId: user._id }, update, options, (err, file) => {
+      if (!file.lastErrorObject.updatedExisting) {
+        return response.status(404).json({ error: 'Not found' });
+      }
+      return response.status(200).json(file.value);
+    });
+    return 0;
+  }
+
+  static async putUnpublish(req, res) {
+    const user = await FilesController.getUser(req);
+    if (!user) {
+      return res.status(401).json({error: 'Unauthorized'});
+    }
+    const { id } = request.params;
+    const files = dbClient.db.collection('files');
+    const idObject = new ObjectID(id);
+    const update = { $set: { isPublic: false } };
+    const options = { returnOriginal: false };
+    files.findOneAndUpdate({ _id: idObject, userId: user._id }, update, options, (err, file) => {
+      if (!file.lastErrorObject.updatedExisting) {
+        return response.status(404).json({ error: 'Not found' });
+      }
+      return response.status(200).json(file.value);
+    });
+    return 0;
+  }
 }
